@@ -1,5 +1,6 @@
 package com.example.geogenie.Main
 
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,9 +19,7 @@ class mainModel : ViewModel() {
     val SightList: LiveData<geminiJsonResponse>
         get() = liveSights
 
-    private val liveDesc = MutableLiveData<String>()
-    val DetailedDescription: LiveData<String>
-        get() = liveDesc
+    val DetailedDescription = MutableLiveData<String>()
 
     private val Gemini = GenerativeModel(
         apiKey = BuildConfig.GEMINI_SECRET_API_KEY,
@@ -45,13 +44,17 @@ class mainModel : ViewModel() {
     }
 
     suspend fun getDetailedDescription(prompt: String){
-        val responseDesc = "place detailed Description about"
-        val geminiResponse = Gemini.generateContent(content(role = "user") {
-            text(responseDesc)
-            text(prompt)
-        })
-        withContext(Dispatchers.Main) {
-            liveDesc.value = geminiResponse.text
+        try{
+            val responseDesc = "place detailed Description about"
+            val geminiResponse = Gemini.generateContent(content(role = "user") {
+                text(responseDesc)
+                text(prompt)
+            })
+            withContext(Dispatchers.Main) {
+                DetailedDescription.value = geminiResponse.text
+            }
+        }catch (e:Exception){
+            //
         }
     }
 

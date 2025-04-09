@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -37,12 +38,21 @@ class DetailedView : Fragment() {
         bind.ratingButton.text = gemini.rating
 
         lifecycleScope.launch(Dispatchers.IO) {
-            sharedVm.getDetailedDescription(gemini.name)
+            try{
+                bind.descLoader.visibility = View.VISIBLE
+                sharedVm.getDetailedDescription(gemini.name)
+            }catch (e:Exception)
+            {
+                Toast.makeText(requireContext(),"Error Encountered",Toast.LENGTH_SHORT).show()
+            }
+
         }
 
         sharedVm.DetailedDescription.observe(viewLifecycleOwner) {
-            bind.descLoader.visibility = View.GONE
-            bind.description.text = formateResponse(it)
+            if(it.isNotEmpty()){
+                bind.descLoader.visibility = View.GONE
+                bind.description.text = formateResponse(it)
+            }
 
         }
     }
@@ -50,5 +60,10 @@ class DetailedView : Fragment() {
     fun formateResponse(response: String): String {
         val temp_res = response.replace("*", "")
         return temp_res
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sharedVm.DetailedDescription.value = ""
     }
 }
